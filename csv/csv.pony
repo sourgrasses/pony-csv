@@ -1,8 +1,7 @@
-use "collections"
 use "files"
 use "itertools"
 
-type CsvCell[T: Any iso] is (T | None)
+type MaybeCsvCell is (String | None)
 
 type MaybeDelimiter is (U8 | None)
 
@@ -27,5 +26,39 @@ class CsvFile
             error
         end
 
-//actor CsvParser
-//    be parse_line(line: String): Array[CsvCell] =>
+primitive CsvParser
+    fun parse(def: CsvFile, iter: FileLines): Array[Array[MaybeCsvCell]] =>
+        var word: String ref = String(10)
+        var sheet: Array[Array[MaybeCsvCell]] = Array[Array[MaybeCsvCell]](10)
+
+        let first_line = iter.next()
+        let first_row: Array[MaybeCsvCell] = Array[MaybeCsvCell](10)
+        for c in first_line.values() do
+            if c == 44 then
+                first_row.push(word.clone())
+                word.clear()
+            else
+                word.push(c)
+            end
+        end
+        sheet.push(first_row)
+
+        let size = first_row.size()
+        var row: Array[MaybeCsvCell] = Array[MaybeCsvCell](size)
+
+        for line in iter do
+            for c in line.values() do
+                if c == 44 then
+                    row.push(word.clone())
+                    word.clear()
+                else
+                    word.push(c)
+                end
+            end
+
+            sheet.push(row.clone())
+            row.clear()
+            row = Array[MaybeCsvCell](size)
+        end
+
+        sheet

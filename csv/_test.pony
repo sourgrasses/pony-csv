@@ -11,9 +11,17 @@ actor Main
             end
 
         let f = CsvFile(file, None, false, false)
-        try
-            f.open(env)?
-        else
-            env.out.print("Error opening file")
-            return
+        let lines =
+            try
+                f.open(env)?
+            else
+                env.out.print("Error opening file")
+                return
+            end
+
+        let sheet = CsvParser.parse(f, lines)
+        for row in sheet.values() do
+            for cell in row.values() do
+                env.out.print(cell.string())
+            end
         end
